@@ -8,6 +8,7 @@ public class Mapping {
         return className;
     }
 
+    @AnnotationMethod (value="getAdresse") 
     public void setClassName(String className) {
         this.className = className;
     }
@@ -18,5 +19,10 @@ public class Mapping {
 
     public void setMethod(String method) {
         this.method = method;
+    }
+
+    public Mapping(String className,String method){
+        setClassName(className);
+        setMethod(method);
     }
 }
