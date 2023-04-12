@@ -2,6 +2,7 @@ package etu1917.framework.servlet;
 
 import etu1917.framework.Utilitaire;
 import etu1917.framework.Mapping;
+import etu1917.framework.ModelView;
 
 import java.io.*;
 import jakarta.servlet.*;
@@ -34,10 +35,21 @@ public class FrontServlet extends HttpServlet {
         PrintWriter out = response.getWriter();
         String url = request.getRequestURL().toString();
         Utilitaire u = new Utilitaire();
-        String path=this.getServletContext().getRealPath("")+"WEB-INF/classes/";
+
         try {
-           
-            out.println(this.hashmap.size()+"size");
+            String postUrl=u.getPostUrl(url);
+            out.println(hashmap.get("setNom"));
+            if(u.verifyMap(postUrl,hashmap)==true){
+                Mapping m=(Mapping)hashmap.get(postUrl);
+                ClassLoader cl=this.getServletContext().getClassLoader();
+                ModelView view=(ModelView)cl.loadClass(m.getClassName()).getMethod(m.getMethod()).invoke(cl.loadClass(m.getClassName()).newInstance());
+                String viewStr=view.getView();
+               
+                RequestDispatcher dispatch=request.getRequestDispatcher(viewStr);
+                dispatch.forward(request,response);
+                //response.sendRedirect(viewStr);
+            }
+            out.println(this.hashmap.size());
         } catch (Exception e) {
             out.println(e.getMessage());
              e.printStackTrace();
