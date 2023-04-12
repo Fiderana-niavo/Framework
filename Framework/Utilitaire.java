@@ -116,8 +116,6 @@ public class Utilitaire {
     public void putIntoHashMap(String file,HashMap<String,Mapping> myHashMap,ClassLoader cl){
         try{
             Method[] myMethods=cl.loadClass(file).getDeclaredMethods();
-        // Annotation a = emp.getClass().getAnnotation(AnnotationMethod.class);
-        // AnnotationMethod annotation = (AnnotationMethod) a;
             for(Method m:myMethods){
                 if(m.getDeclaredAnnotation(AnnotationMethod.class)!=null){
                     Mapping map=new Mapping(file,m.getName());
@@ -128,7 +126,6 @@ public class Utilitaire {
         
     }
 
-
     public void putAllIntoHashMap(String directory,HashMap<String,Mapping> myHashMap,ClassLoader cl) {
         String[] all=getAllFile(directory);
         System.out.println(all.length);
@@ -137,4 +134,13 @@ public class Utilitaire {
             System.out.println(myHashMap.size());
         }
     }
+
+    public boolean verifyMap(String url,HashMap<String,Mapping> myHashMap) throws Exception{
+        if(myHashMap.get(url)==null){
+            throw new Exception("Page introuvable");
+        }
+        return true;
+    }
+
+   
 }
