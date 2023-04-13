@@ -35,16 +35,20 @@ public class FrontServlet extends HttpServlet {
         PrintWriter out = response.getWriter();
         String url = request.getRequestURL().toString();
         Utilitaire u = new Utilitaire();
-
         try {
             String postUrl=u.getPostUrl(url);
-            out.println(hashmap.get("setNom"));
             if(u.verifyMap(postUrl,hashmap)==true){
-                Mapping m=(Mapping)hashmap.get(postUrl);
-                ClassLoader cl=this.getServletContext().getClassLoader();
-                ModelView view=(ModelView)cl.loadClass(m.getClassName()).getMethod(m.getMethod()).invoke(cl.loadClass(m.getClassName()).newInstance());
-                String viewStr=view.getView();
-               
+            Mapping m=(Mapping)hashmap.get(postUrl);
+            ClassLoader cl=this.getServletContext().getClassLoader();
+            out.println( cl.loadClass(m.getClassName()).getMethod(m.getMethod()).invoke(cl.loadClass(m.getClassName()).newInstance()));
+            ModelView view=(ModelView)cl.loadClass(m.getClassName()).getMethod(m.getMethod()).invoke(cl.loadClass(m.getClassName()).newInstance());
+            String viewStr=view.getView();
+        out.println("hello2");
+
+                HashMap h=view.getData();
+                u.setAttribute(request, h);
+                request.setAttribute("key",h.keySet());
+        out.println("hello3");
                 RequestDispatcher dispatch=request.getRequestDispatcher(viewStr);
                 dispatch.forward(request,response);
                 //response.sendRedirect(viewStr);
@@ -52,6 +56,7 @@ public class FrontServlet extends HttpServlet {
             out.println(this.hashmap.size());
         } catch (Exception e) {
             out.println(e.getMessage());
+          
              e.printStackTrace();
         }
     }

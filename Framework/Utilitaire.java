@@ -142,5 +142,11 @@ public class Utilitaire {
         return true;
     }
 
+    public void setAttribute(HttpServletRequest request,HashMap map){
+        Object[] key=map.keySet().toArray();
+        for(int i=0;i<map.keySet().size();i++){
+            request.setAttribute((String)key[i],map.get((String)key[i]));
+        }
+    }
    
 }
