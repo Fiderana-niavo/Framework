@@ -30,6 +30,33 @@ public class FrontServlet extends HttpServlet {
         util.putAllIntoHashMap(path,map,this.getServletContext().getClassLoader());
         this.setHashmap(map);
     }
+
+    protected void processRequest(HttpServletRequest request, HttpServletResponse response)
+        throws ServletException, IOException {
+            PrintWriter out = response.getWriter();
+            String url = request.getRequestURL().toString();
+            Utilitaire u = new Utilitaire();
+            try {
+                String postUrl=u.getPostUrl(url);
+                if(u.verifyMap(postUrl,hashmap)==true){
+                    Mapping m=(Mapping)hashmap.get(postUrl);
+                    ClassLoader cl=this.getServletContext().getClassLoader();
+                    Object obj=cl.loadClass(m.getClassName()).newInstance();
+                  
+                    u.setFieldOfClass(request,obj);
+                    String str=String.valueOf(obj.getClass().getDeclaredMethod(m.getMethod()).invoke(cl.loadClass(m.getClassName()).newInstance()));
+                    request.setAttribute("str",str);
+                    RequestDispatcher dispatch=request.getRequestDispatcher("test.jsp");
+                    dispatch.forward(request,response);
+                }
+                    out.println(this.hashmap.size());
+                } catch (Exception e) {
+                    out.println(e.getMessage());
+                  
+                     e.printStackTrace();
+                }
+    }
+
    protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         PrintWriter out = response.getWriter();
@@ -40,15 +67,13 @@ public class FrontServlet extends HttpServlet {
             if(u.verifyMap(postUrl,hashmap)==true){
             Mapping m=(Mapping)hashmap.get(postUrl);
             ClassLoader cl=this.getServletContext().getClassLoader();
-            out.println( cl.loadClass(m.getClassName()).getMethod(m.getMethod()).invoke(cl.loadClass(m.getClassName()).newInstance()));
-            ModelView view=(ModelView)cl.loadClass(m.getClassName()).getMethod(m.getMethod()).invoke(cl.loadClass(m.getClassName()).newInstance());
+            Object obj=cl.loadClass(m.getClassName()).newInstance();
+            u.setFieldOfClass(request,obj);
+            ModelView view=(ModelView)cl.loadClass(m.getClassName()).getMethod(m.getMethod()).invoke(obj);
             String viewStr=view.getView();
-        out.println("hello2");
-
                 HashMap h=view.getData();
                 u.setAttribute(request, h);
                 request.setAttribute("key",h.keySet());
-        out.println("hello3");
                 RequestDispatcher dispatch=request.getRequestDispatcher(viewStr);
                 dispatch.forward(request,response);
                 //response.sendRedirect(viewStr);
