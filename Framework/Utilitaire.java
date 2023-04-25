@@ -142,10 +142,60 @@ public class Utilitaire {
         return true;
     }
 
-    public void setAttribute(HttpServletRequest request,HashMap map){
+    public void setAttribute(HttpServletRequest request,HashMap map)throws Exception{
         Object[] key=map.keySet().toArray();
         for(int i=0;i<map.keySet().size();i++){
             request.setAttribute((String)key[i],map.get((String)key[i]));
+        }
+    }
+
+    public String intoCapital(String type){ //transfomer la premiere lettre en majuscule
+        String firstChar=String.valueOf(type.charAt(0));
+        String finalString=firstChar.toUpperCase()+String.valueOf(type.toCharArray(),1,type.toCharArray().length-1);
+        return finalString;
+    }
+
+    public void setFieldOfClass(HttpServletRequest request,Object obj)throws Exception{
+        Class c=obj.getClass();
+        Field[] field=c.getDeclaredFields();
+        for(int i=0;i<field.length;i++){
+            if(request.getParameter(field[i].getName())!=null){
+                field[i].setAccessible(true);
+                //field[i].set(obj,request.getParameter(field[i].getName()));
+                Class cl=field[i].getType();
+                if(cl==int.class){
+                   // c.getDeclaredMethod("set"+intoCapital(field[i].getName()),int.class).invoke(obj,Integer.valueOf(request.getParameter(field[i].getName())));
+                    field[i].set(obj,Integer.parseInt(request.getParameter(field[i].getName())));
+                }
+                else if(cl==Integer.class){
+                    field[i].set(obj,Integer.valueOf(request.getParameter(field[i].getName())));
+                }
+                else if(cl==Boolean.class){
+                    field[i].set(obj,Boolean.valueOf(request.getParameter(field[i].getName())));
+                }
+                else if(cl==boolean.class){
+                    field[i].set(obj,Boolean.parseBoolean(request.getParameter(field[i].getName())));
+                }
+                else if(cl==Float.class){
+                    field[i].set(obj,Float.valueOf(request.getParameter(field[i].getName())));
+                }
+                else if(cl==float.class){
+                    field[i].set(obj,Float.parseFloat(request.getParameter(field[i].getName())));
+                }
+                else if(cl==double.class){
+                    field[i].set(obj,Double.parseDouble(request.getParameter(field[i].getName())));
+                }
+                else if(cl==Double.class){
+                    field[i].set(obj,Double.valueOf(request.getParameter(field[i].getName())));
+                }
+                else if(cl==Date.class){
+                    field[i].set(obj,Date.valueOf(request.getParameter(field[i].getName())));
+                }
+                else if(cl==String.class){
+                    field[i].set(obj,String.valueOf(request.getParameter(field[i].getName())));
+                   // c.getDeclaredMethod("set"+intoCapital(field[i].getName()),cl).invoke(obj,String.valueOf(request.getParameter(field[i].getName())));
+                }
+            }
         }
     }
    
