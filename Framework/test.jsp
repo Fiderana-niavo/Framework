@@ -7,11 +7,8 @@
     <title>Document</title>
 </head>
 <body>
-    <form action="save" method="get">
-        <input type="text" name="nom">
-        <input type="number" name="age">
-        <input type="number" name="id">
-        <input type="submit" value="go">
-    </form>
+    <%
+    out.println(request.getAttribute("emp"));
+%>
 </body>
 </html>

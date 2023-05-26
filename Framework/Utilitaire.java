@@ -188,9 +188,9 @@ public class Utilitaire {
                 else if(cl==Double.class){
                     field[i].set(obj,Double.valueOf(request.getParameter(field[i].getName())));
                 }
-                else if(cl==Date.class){
-                    field[i].set(obj,Date.valueOf(request.getParameter(field[i].getName())));
-                }
+                //else if(cl==Date.class){
+                   // field[i].set(obj,Date.valueOf(request.getParameter(field[i].getName())));
+                //}
                 else if(cl==String.class){
                     field[i].set(obj,String.valueOf(request.getParameter(field[i].getName())));
                    // c.getDeclaredMethod("set"+intoCapital(field[i].getName()),cl).invoke(obj,String.valueOf(request.getParameter(field[i].getName())));
@@ -198,5 +198,82 @@ public class Utilitaire {
             }
         }
     }
-   
+
+    public Method getRightMethod(Class c,String nomMethod){
+        Method m=null;
+        for(int i=0;i<c.getDeclaredMethods().length;i++){
+            if(c.getDeclaredMethods()[i].getName().equalsIgnoreCase(nomMethod)){
+                m=c.getDeclaredMethods()[i];
+            }
+        }
+        return m;
+    }
+
+    public Object parse(Class cl,String str){
+        if(cl==int.class){
+            // c.getDeclaredMethod("set"+intoCapital(field[i].getName()),int.class).invoke(obj,Integer.valueOf(request.getParameter(field[i].getName())));
+             return Integer.parseInt(str);
+         }
+         else if(cl==Integer.class){
+            return Integer.parseInt(str);
+         }
+         else if(cl==Boolean.class){
+            return Boolean.parseBoolean(str);
+         }
+         else if(cl==boolean.class){
+            return Boolean.parseBoolean(str);
+         }
+         else if(cl==Float.class){
+            return Float.parseFloat(str);
+         }
+         else if(cl==float.class){
+            return Float.parseFloat(str);
+         }
+         else if(cl==double.class){
+            return Double.parseDouble(str);
+         }
+         else if(cl==Double.class){
+            return Double.parseDouble(str);
+         }
+         //else if(cl==Date.class){
+           // return Date.valueOf(str);
+         //}
+         else if(cl==String.class){
+            return str;
+            // c.getDeclaredMethod("set"+intoCapital(field[i].getName()),cl).invoke(obj,String.valueOf(request.getParameter(field[i].getName())));
+         }
+         return null;
+    }
+
+    public Object[] getAllParameters(HttpServletRequest request,Method m)throws Exception{
+        Object[] obj=new Object[m.getParameters().length];
+        for(int i=0;i<m.getParameters().length;i++){
+            if(request.getParameter(m.getParameters()[i].getName())!=null){
+                obj[i]=parse( m.getParameters()[i].getType(),request.getParameter(m.getParameters()[i].getName()));
+                //obj[i]=m.getParameters()[i].getName();
+            }
+            else{
+                 obj[i]=null;
+            }  
+        }
+        return obj;
+    }
+
+    public ModelView getModelView(HttpServletRequest request,Object obj,Mapping m)throws Exception{
+        Class c=obj.getClass();
+        ModelView model=null;
+        Object[] objs=null;
+        try{
+            model=(ModelView)c.getDeclaredMethod(m.getMethod()).invoke(obj);
+        }catch(Exception e){
+            try {
+                Method method=getRightMethod(c, m.getMethod());
+                objs=getAllParameters(request, method);
+                model=(ModelView)method.invoke(obj,objs); 
+            } catch (Exception e1) {
+                // TODO: handle exception
+            }
+        }
+        return model;
+    }
 }
