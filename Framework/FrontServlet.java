@@ -31,7 +31,7 @@ public class FrontServlet extends HttpServlet {
         this.setHashmap(map);
     }
 
-    protected void processRequest(HttpServletRequest request, HttpServletResponse response)
+    /*protected void processRequest(HttpServletRequest request, HttpServletResponse response)
         throws ServletException, IOException {
             PrintWriter out = response.getWriter();
             String url = request.getRequestURL().toString();
@@ -39,37 +39,47 @@ public class FrontServlet extends HttpServlet {
             try {
                 String postUrl=u.getPostUrl(url);
                 if(u.verifyMap(postUrl,hashmap)==true){
-                    Mapping m=(Mapping)hashmap.get(postUrl);
-                    ClassLoader cl=this.getServletContext().getClassLoader();
-                    Object obj=cl.loadClass(m.getClassName()).newInstance();
-                  
-                    u.setFieldOfClass(request,obj);
-                    String str=String.valueOf(obj.getClass().getDeclaredMethod(m.getMethod()).invoke(cl.loadClass(m.getClassName()).newInstance()));
-                    request.setAttribute("str",str);
-                    RequestDispatcher dispatch=request.getRequestDispatcher("test.jsp");
+                Mapping m=(Mapping)hashmap.get(postUrl);
+                ClassLoader cl=this.getServletContext().getClassLoader();
+                Object obj=cl.loadClass(m.getClassName()).newInstance();
+                u.setFieldOfClass(request,obj);
+                //ModelView view=(ModelView)cl.loadClass(m.getClassName()).getMethod(m.getMethod()).invoke(obj);
+                ModelView view=u.getModelView(request, obj, m);
+                String viewStr=view.getView();
+                    HashMap h=view.getData();
+                    u.setAttribute(request, h);
+                    request.setAttribute("key",h.keySet());
+                    RequestDispatcher dispatch=request.getRequestDispatcher(viewStr);
                     dispatch.forward(request,response);
+                    //response.sendRedirect(viewStr);
                 }
-                    out.println(this.hashmap.size());
-                } catch (Exception e) {
-                    out.println(e.getMessage());
-                  
-                     e.printStackTrace();
-                }
-    }
+                out.println(this.hashmap.size());
+            } catch (Exception e) {
+                out.println(e.getMessage());
+                 e.printStackTrace();
+            }
+    }*/
 
    protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         PrintWriter out = response.getWriter();
         String url = request.getRequestURL().toString();
         Utilitaire u = new Utilitaire();
+        out.println("okok1");
         try {
             String postUrl=u.getPostUrl(url);
+            out.println("okok");
             if(u.verifyMap(postUrl,hashmap)==true){
             Mapping m=(Mapping)hashmap.get(postUrl);
             ClassLoader cl=this.getServletContext().getClassLoader();
             Object obj=cl.loadClass(m.getClassName()).newInstance();
             u.setFieldOfClass(request,obj);
-            ModelView view=(ModelView)cl.loadClass(m.getClassName()).getMethod(m.getMethod()).invoke(obj);
+            //ModelView view=(ModelView)cl.loadClass(m.getClassName()).getMethod(m.getMethod()).invoke(obj);
+            Method me=u.getRightMethod(obj.getClass(), m.getMethod());
+            Object[] objs=u.getAllParameters(request, me);
+            out.print(objs[0]);
+            out.print(objs[1]);
+            ModelView view=u.getModelView(request, obj, m);
             String viewStr=view.getView();
                 HashMap h=view.getData();
                 u.setAttribute(request, h);

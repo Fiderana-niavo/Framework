@@ -7,10 +7,9 @@
     <title>Document</title>
 </head>
 <body>
-    <form action="save" method="get">
+    <form action="test.jsp" method="get">
         <input type="text" name="nom">
         <input type="number" name="age">
-        <input type="number" name="id">
         <input type="submit" value="go">
     </form>
 </body>
