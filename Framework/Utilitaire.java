@@ -2,9 +2,15 @@ package etu1917.framework;
 
 import java.net.*;
 import java.util.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.lang.reflect.*;
 import jakarta.servlet.http.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 
 public class Utilitaire {
@@ -155,14 +161,65 @@ public class Utilitaire {
         return finalString;
     }
 
-    public void setFieldOfClass(HttpServletRequest request,Object obj)throws Exception{
+    public FileUpload traiterFile(String nomFile,InputStream fileData){
+        ByteArrayOutputStream byteOut=new ByteArrayOutputStream();
+        FileUpload fileupload=null;
+        try {
+            byte[] byteArray=new byte[8192];
+            int byteRead;
+            while((byteRead=fileData.read(byteArray))!=-1){//tant que ny octet anatin'ny  inputStram vakiana !=-1 izany hoe tant que mbola misy ilay zavatra vakiana ao
+                byteOut.write(byteArray,0,byteRead);
+            }
+            byte[] file=byteOut.toByteArray();
+            fileupload=new FileUpload();
+            fileupload.setName(nomFile);
+            fileupload.setFile(file);
+        } catch (Exception e) {
+            // TODO: handle exception
+        }finally{
+            try {
+            byteOut.close();
+            } catch (Exception e1) {
+                // TODO: handle exception
+            }
+        }
+        return fileupload;
+    }
+
+    public FileUpload traitrerFileUpload(String nomFile,HttpServletRequest request,HttpServletResponse response){
+        FileUpload file=null;
+        try {
+            Part filePart=null;
+            String test=request.getContentType()+"okok";
+            if(request.getContentType()!=null && request.getContentType().startsWith("multipart/")){
+                filePart =request.getPart(nomFile);
+                InputStream fileContent = filePart.getInputStream();
+                file =traiterFile(filePart.getName(), fileContent);
+            }
+            else {
+            // Le paramètre n'est pas un fichier
+            }
+        } catch (Exception e) {
+            // TODO: handle exception
+        }finally{
+          
+        }
+        return file;
+    }
+    
+
+    public String setFieldOfClass(HttpServletRequest request,Object obj,HttpServletResponse response)throws Exception{
+        String[] str=new String[4];
         Class c=obj.getClass();
         Field[] field=c.getDeclaredFields();
+        String test="";
         for(int i=0;i<field.length;i++){
+            str[i]=field[i].getType().getName();
+            field[i].setAccessible(true);
+            Class cl=field[i].getType();
             if(request.getParameter(field[i].getName())!=null){
-                field[i].setAccessible(true);
                 //field[i].set(obj,request.getParameter(field[i].getName()));
-                Class cl=field[i].getType();
+                //response.getWriter().println(cl);
                 if(cl==int.class){
                    // c.getDeclaredMethod("set"+intoCapital(field[i].getName()),int.class).invoke(obj,Integer.valueOf(request.getParameter(field[i].getName())));
                     field[i].set(obj,Integer.parseInt(request.getParameter(field[i].getName())));
@@ -191,12 +248,38 @@ public class Utilitaire {
                 //else if(cl==Date.class){
                    // field[i].set(obj,Date.valueOf(request.getParameter(field[i].getName())));
                 //}
+                else if(cl.getSimpleName().equalsIgnoreCase("FileUpload")){
+                    test="okok";
+                    //FileUpload file=new FileUpload();
+                    //file.setName("okok");
+                    FileUpload file=traitrerFileUpload(field[i].getName(),request,response);
+                    field[i].set(obj,file);
+                    //test=f;
+                   // field[i].set(obj,null);
+
+                }
                 else if(cl==String.class){
+                  
+
                     field[i].set(obj,String.valueOf(request.getParameter(field[i].getName())));
                    // c.getDeclaredMethod("set"+intoCapital(field[i].getName()),cl).invoke(obj,String.valueOf(request.getParameter(field[i].getName())));
                 }
             }
+             if(request.getContentType()!=null && request.getContentType().startsWith("multipart/")){
+                    if(cl.getSimpleName().equalsIgnoreCase("FileUpload")){
+                   test="okok";
+                //FileUpload file=new FileUpload();
+                //file.setName("okok");
+                FileUpload file=traitrerFileUpload(field[i].getName(),request,response);
+                response.getWriter().println("yesss");
+                field[i].set(obj,file);
+                //test=f;
+               // field[i].set(obj,null);
+
+            }
         }
+        }
+        return test;
     }
 
     public Method getRightMethod(Class c,String nomMethod){
@@ -245,12 +328,18 @@ public class Utilitaire {
          return null;
     }
 
+
     public Object[] getAllParameters(HttpServletRequest request,Method m)throws Exception{
         Object[] obj=new Object[m.getParameters().length];
         for(int i=0;i<m.getParameters().length;i++){
             if(request.getParameter(m.getParameters()[i].getName())!=null){
-                obj[i]=parse( m.getParameters()[i].getType(),request.getParameter(m.getParameters()[i].getName()));
-                //obj[i]=m.getParameters()[i].getName();
+
+                if(m.getParameters()[i].getName().equalsIgnoreCase("FileUpload") )
+                {
+                    //obj[i]=traitrerFileUpload(request.getParameter(m.getParameters()[i].getName()),request);
+                }else{
+                    obj[i]=parse( m.getParameters()[i].getType(),request.getParameter(m.getParameters()[i].getName()));
+                }
             }
             else{
                  obj[i]=null;
@@ -271,9 +360,11 @@ public class Utilitaire {
                 objs=getAllParameters(request, method);
                 model=(ModelView)method.invoke(obj,objs); 
             } catch (Exception e1) {
+                
                 // TODO: handle exception
             }
         }
         return model;
     }
+
 }

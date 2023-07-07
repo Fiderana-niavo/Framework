@@ -7,10 +7,11 @@
     <title>Document</title>
 </head>
 <body>
-    <form action="save" method="get">
+    <form action="save" method="post" enctype="multipart/form-data">
         <input type="text" name="nom">
         <input type="number" name="age">
         <input type="number" name="id">
+        <input type="file" name="image">
         <input type="submit" value="go">
     </form>
 </body>
